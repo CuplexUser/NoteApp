@@ -32,6 +32,7 @@ import { fetchNotes, fetchTags, createNote, updateNote, deleteNote, type NoteInp
 import type { Note } from "../types";
 import ColorSwatchPicker from "../components/ColorSwatchPicker";
 import AttachmentsPanel from "../components/AttachmentsPanel";
+import NoteViewDrawer from "../components/NoteViewDrawer";
 
 const { Title, Paragraph, Text } = Typography;
 const { TextArea } = Input;
@@ -44,6 +45,7 @@ export default function NotesPage() {
   const [pinnedOnly, setPinnedOnly] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [viewingNote, setViewingNote] = useState<Note | null>(null);
   const [form] = Form.useForm<{ title: string; content: string; tags: string[]; color?: string; pinned?: boolean }>();
 
   useEffect(() => {
@@ -109,6 +111,15 @@ export default function NotesPage() {
       pinned: note.metadata?.pinned,
     });
     setModalOpen(true);
+  }
+
+  function openViewDrawer(note: Note) {
+    setViewingNote(note);
+  }
+
+  function handleEditFromDrawer(note: Note) {
+    setViewingNote(null);
+    openEditModal(note);
   }
 
   function closeModal() {
@@ -204,31 +215,33 @@ export default function NotesPage() {
                 </Popconfirm>,
               ]}
             >
-              <Card.Meta
-                title={note.title}
-                description={
-                  <>
-                    <Paragraph ellipsis={{ rows: 3 }} style={{ marginBottom: 8, minHeight: 60 }}>
-                      {note.content || <Text type="secondary">No content</Text>}
-                    </Paragraph>
-                    <Space wrap size={[4, 4]} style={{ marginBottom: 8 }}>
-                      {note.tags.map((tag) => (
-                        <Tag key={tag}>{tag}</Tag>
-                      ))}
-                    </Space>
-                    <div>
-                      <Text type="secondary" style={{ fontSize: 12 }}>
-                        Updated {dayjs(note.updated_at).fromNow()}
-                      </Text>
-                      {note.attachments.length > 0 && (
-                        <Text type="secondary" style={{ fontSize: 12, marginLeft: 10 }}>
-                          <PaperClipOutlined /> {note.attachments.length}
+              <div onClick={() => openViewDrawer(note)} style={{ cursor: "pointer" }}>
+                <Card.Meta
+                  title={note.title}
+                  description={
+                    <>
+                      <Paragraph ellipsis={{ rows: 3 }} style={{ marginBottom: 8, minHeight: 60 }}>
+                        {note.content || <Text type="secondary">No content</Text>}
+                      </Paragraph>
+                      <Space wrap size={[4, 4]} style={{ marginBottom: 8 }}>
+                        {note.tags.map((tag) => (
+                          <Tag key={tag}>{tag}</Tag>
+                        ))}
+                      </Space>
+                      <div>
+                        <Text type="secondary" style={{ fontSize: 12 }}>
+                          Updated {dayjs(note.updated_at).fromNow()}
                         </Text>
-                      )}
-                    </div>
-                  </>
-                }
-              />
+                        {note.attachments.length > 0 && (
+                          <Text type="secondary" style={{ fontSize: 12, marginLeft: 10 }}>
+                            <PaperClipOutlined /> {note.attachments.length}
+                          </Text>
+                        )}
+                      </div>
+                    </>
+                  }
+                />
+              </div>
             </Card>
           </Col>
         ))}
@@ -279,6 +292,14 @@ export default function NotesPage() {
           </>
         )}
       </Modal>
+
+      <NoteViewDrawer
+        note={
+          viewingNote ? notesQuery.data?.find((n) => n.id === viewingNote.id) || viewingNote : null
+        }
+        onClose={() => setViewingNote(null)}
+        onEdit={handleEditFromDrawer}
+      />
     </div>
   );
 }

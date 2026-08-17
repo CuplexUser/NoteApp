@@ -2,10 +2,12 @@ import "./db.js"; // ensures dotenv is loaded before anything else reads process
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import multer from "multer";
 import authRoutes from "./routes/auth.js";
 import notesRoutes from "./routes/notes.js";
 import attachmentsRoutes from "./routes/attachments.js";
 import dashboardRoutes from "./routes/dashboard.js";
+import usersRoutes from "./routes/users.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -21,8 +23,15 @@ app.use("/api/auth", authRoutes);
 app.use("/api/notes", notesRoutes);
 app.use("/api", attachmentsRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/users", usersRoutes);
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ error: err.message });
+  }
+  if (err instanceof Error && err.message === "Only image files are allowed") {
+    return res.status(400).json({ error: err.message });
+  }
   console.error(err);
   res.status(500).json({ error: "Internal server error" });
 });

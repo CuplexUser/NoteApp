@@ -24,3 +24,12 @@ export const createNoteSchema = z.object({
 });
 
 export const updateNoteSchema = createNoteSchema.partial();
+
+export const updateNameSchema = z.object({
+  name: z.string().min(1).max(100),
+});
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(8, "Password must be at least 8 characters"),
+});

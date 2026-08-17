@@ -4,6 +4,7 @@ import { pool } from "../db.js";
 import { signToken } from "../utils/jwt.js";
 import { registerSchema, loginSchema } from "../utils/validation.js";
 import { requireAuth } from "../middleware/auth.js";
+import { USER_PUBLIC_FIELDS } from "../utils/sql.js";
 
 const router = Router();
 
@@ -28,7 +29,7 @@ router.post("/register", async (req, res) => {
 
   const passwordHash = await bcrypt.hash(password, 10);
   const result = await pool.query(
-    "INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING id, email, name, created_at",
+    `INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING ${USER_PUBLIC_FIELDS}`,
     [email, passwordHash, name]
   );
   const user = result.rows[0];
@@ -46,7 +47,7 @@ router.post("/login", async (req, res) => {
   const { email, password } = parsed.data;
 
   const result = await pool.query(
-    "SELECT id, email, name, password_hash FROM users WHERE email = $1",
+    `SELECT password_hash, ${USER_PUBLIC_FIELDS} FROM users WHERE email = $1`,
     [email]
   );
   const user = result.rows[0];
@@ -59,9 +60,10 @@ router.post("/login", async (req, res) => {
     return res.status(401).json({ error: "Invalid email or password" });
   }
 
+  const { password_hash: _passwordHash, ...publicUser } = user;
   const token = signToken({ userId: user.id });
   res.cookie("token", token, COOKIE_OPTIONS);
-  res.json({ user: { id: user.id, email: user.email, name: user.name } });
+  res.json({ user: publicUser });
 });
 
 router.post("/logout", (_req, res) => {
@@ -71,7 +73,7 @@ router.post("/logout", (_req, res) => {
 
 router.get("/me", requireAuth, async (req, res) => {
   const result = await pool.query(
-    "SELECT id, email, name, created_at FROM users WHERE id = $1",
+    `SELECT ${USER_PUBLIC_FIELDS} FROM users WHERE id = $1`,
     [req.userId]
   );
   const user = result.rows[0];

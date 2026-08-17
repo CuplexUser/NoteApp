@@ -3,6 +3,8 @@ export interface User {
   email: string;
   name: string;
   created_at?: string;
+  has_avatar?: boolean;
+  avatar_updated_at?: string | null;
 }
 
 export interface Attachment {

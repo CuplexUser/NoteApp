@@ -8,6 +8,10 @@ CREATE TABLE IF NOT EXISTS users (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
+ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_data bytea;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_mime_type text;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_updated_at timestamptz;
+
 CREATE TABLE IF NOT EXISTS notes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,

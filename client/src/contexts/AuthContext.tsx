@@ -1,5 +1,11 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { fetchMe, loginUser, logoutUser, registerUser } from "../api/auth";
+import {
+  updateName as updateNameApi,
+  changePassword as changePasswordApi,
+  uploadAvatar as uploadAvatarApi,
+  deleteAvatar as deleteAvatarApi,
+} from "../api/users";
 import type { User } from "../types";
 
 interface AuthContextValue {
@@ -8,6 +14,10 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateName: (name: string) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  uploadAvatar: (file: File) => Promise<void>;
+  deleteAvatar: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -38,8 +48,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }
 
+  async function updateName(name: string) {
+    const updated = await updateNameApi(name);
+    setUser(updated);
+  }
+
+  async function changePassword(currentPassword: string, newPassword: string) {
+    await changePasswordApi(currentPassword, newPassword);
+  }
+
+  async function uploadAvatar(file: File) {
+    const updated = await uploadAvatarApi(file);
+    setUser(updated);
+  }
+
+  async function deleteAvatar() {
+    const updated = await deleteAvatarApi();
+    setUser(updated);
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        register,
+        logout,
+        updateName,
+        changePassword,
+        uploadAvatar,
+        deleteAvatar,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

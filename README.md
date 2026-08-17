@@ -27,6 +27,8 @@ The root `.env` already has `DATABASE_URL` plus a generated `JWT_SECRET`, `PORT`
 | Color / pinned on a note | JSONB `metadata` column, queried with `metadata->>'pinned'` |
 | File attachments | Binary file bytes stored directly in a `bytea` column (no S3) — upload, list, download, delete |
 | Dashboard | Aggregate SQL: `COUNT`, `GROUP BY`, `date_trunc`, `unnest()` for per-tag counts |
+| Note read view | Renders a note's Markdown content client-side (`react-markdown` + `remark-gfm`) |
+| Account settings | Display name update, avatar photo stored as `bytea` on `users` (same pattern as attachments), password change via `bcryptjs`, light/dark theme toggle (local only) |
 
 ## Project layout
 ```
